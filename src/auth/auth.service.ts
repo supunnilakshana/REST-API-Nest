@@ -43,9 +43,9 @@ export class AuthService {
     });
 
     if (!user) throw new ForbiddenException('Cretantial  incorrect');
-    console.log(user);
+
     const pwMatches: boolean = await argon.verify(user.hash, authdto.password);
-    console.log('userss');
+
     if (pwMatches) {
       delete user.hash;
       return this.genarateJWT(user.id, user.email);

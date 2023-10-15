@@ -6,6 +6,7 @@ import { NestApplication } from '@nestjs/core';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { AuthDto } from 'src/auth/dto';
 import * as pactum from 'pactum';
+import { EditUserDto } from 'src/user/dto';
 
 describe('appe2etest', () => {
   let app: NestApplication;
@@ -33,6 +34,20 @@ describe('appe2etest', () => {
   it.todo('shoud pass');
   describe('Auth', () => {
     describe('Signup', () => {
+      it('should thrown error email empty', () => {
+        const dto: AuthDto = {
+          email: '',
+          password: '123456',
+        };
+        return pactum
+          .spec()
+          .post('auth/signup')
+          .withBody(dto)
+          .expectStatus(400);
+      });
+      it('should thrown error no body provided', () => {
+        return pactum.spec().post('auth/signup').expectStatus(400);
+      });
       it('shouldsignup', () => {
         const dto: AuthDto = {
           email: 'supun@gmail.com',
@@ -42,8 +57,7 @@ describe('appe2etest', () => {
           .spec()
           .post('auth/signup')
           .withBody(dto)
-          .expectStatus(201)
-          .inspect();
+          .expectStatus(201);
       });
     });
     describe('Signin', () => {
@@ -56,13 +70,37 @@ describe('appe2etest', () => {
           .spec()
           .post('auth/signin')
           .withBody(dto)
-          .expectStatus(200);
+          .expectStatus(200)
+          .stores('userAt', 'access_token');
       });
     });
   });
   describe('User', () => {
-    describe('Get me', () => {});
-    describe('Edit user', () => {});
+    describe('Get me', () => {
+      it('fetch user by token', () => {
+        return pactum
+          .spec()
+          .get('users/me')
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200);
+      });
+    });
+    describe('Edit user', () => {
+      it('edit user by id', () => {
+        const dto: EditUserDto = {
+          email: 'supun@gmail.com',
+          firstName: 'supantha',
+          lastName: 'nilaa',
+        };
+        return pactum
+          .spec()
+          .patch('users/edit')
+          .withBody(dto)
+          .withBearerToken('$S{userAt}')
+          .expectStatus(200)
+          .inspect();
+      });
+    });
   });
   describe('Bookmark', () => {
     describe('Create bookmark', () => {});
